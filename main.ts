@@ -10,6 +10,7 @@ serve(async (req: Request) => {
   });
 
   try {
+    console.log("代理请求:", targetUrl.toString());
     const res = await fetch(targetUrl.toString(), {
       headers: req.headers,
       method: req.method,
