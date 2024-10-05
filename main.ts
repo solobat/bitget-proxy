@@ -14,8 +14,8 @@ serve(async (req: Request) => {
       },
       referrer: "https://www.bitget.com/zh-CN/events/launchpool",
       referrerPolicy: "unsafe-url",
-      body: req.body,
-      method: req.method,
+      body: JSON.stringify({ pageNo: 1, matchType: 0 }),
+      method: "POST",
       mode: "cors",
       credentials: "include",
     });
