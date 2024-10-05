@@ -10,7 +10,6 @@ serve(async (req: Request) => {
   });
 
   try {
-    console.log("代理请求:", targetUrl.toString());
     const res = await fetch(targetUrl.toString(), {
       headers: req.headers,
       method: req.method,
@@ -20,10 +19,12 @@ serve(async (req: Request) => {
     const headers = new Headers(res.headers);
     headers.set("Access-Control-Allow-Origin", "*");
 
-    return new Response(res.body, {
+    const response = new Response(res.body, {
       headers,
       status: res.status,
     });
+    console.log("代理请求:", response.status, response.statusText);
+    return response;
   } catch (error) {
     console.error("代理请求出错:", error);
     return new Response("代理请求失败", { status: 500 });
