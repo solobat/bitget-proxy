@@ -1,7 +1,9 @@
 import { serve } from "https://deno.land/std@0.181.0/http/server.ts";
 
 serve(async (req: Request) => {
-  const targetUrl = "https://www.bitget.com/v1/finance/launchpool/product/list";
+  const baseUrl = "https://www.bitget.com";
+  const url = new URL(req.url);
+  const targetUrl = `${baseUrl}${url.pathname}${url.search}`;
 
   // 处理预检请求
   if (req.method === "OPTIONS") {
@@ -16,39 +18,46 @@ serve(async (req: Request) => {
   }
 
   try {
+    const headers = new Headers(req.headers);
+    headers.set("accept", "application/json, text/plain, */*");
+    headers.set("accept-language", "zh-CN,zh;q=0.9,en;q=0.8");
+    headers.set("content-type", "application/json;charset=UTF-8");
+    headers.set("language", "zh_CN");
+    headers.set("locale", "zh_CN");
+
+    let body = "";
+    if (req.method !== "GET" && req.method !== "HEAD") {
+      body = await req.text();
+    }
+
     const res = await fetch(targetUrl, {
-      headers: {
-        accept: "application/json, text/plain, */*",
-        "accept-language": "zh-CN,zh;q=0.9,en;q=0.8",
-        "content-type": "application/json;charset=UTF-8",
-        language: "zh_CN",
-        locale: "zh_CN",
-      },
+      method: req.method,
+      headers: headers,
+      body: body,
       referrer: "https://www.bitget.com/zh-CN/events/launchpool",
       referrerPolicy: "unsafe-url",
-      body: JSON.stringify({ pageNo: 1, matchType: 0 }),
-      method: "POST",
       mode: "cors",
       credentials: "include",
     });
 
     const data = await res.json();
 
-    const headers = new Headers();
-    headers.set("Access-Control-Allow-Origin", "*");
-    headers.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-    headers.set("Access-Control-Allow-Headers", "Content-Type");
-    headers.set("Content-Type", "application/json");
-
+    const responseHeaders = new Headers();
+    responseHeaders.set("Access-Control-Allow-Origin", "*");
+    responseHeaders.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+    responseHeaders.set("Access-Control-Allow-Headers", "Content-Type");
+    responseHeaders.set("Content-Type", "application/json");
+    console.log("req data", data, targetUrl);
     const response = new Response(JSON.stringify(data), {
-      headers,
-      status: 200,
+      headers: responseHeaders,
+      status: res.status,
+      statusText: res.statusText,
     });
     console.log("代理请求成功:", response.status, response.statusText);
     return response;
   } catch (error) {
     console.error("代理请求出错:", error);
-    return new Response("代理请求失败", { 
+    return new Response("代理请求失败", {
       status: 500,
       headers: {
         "Access-Control-Allow-Origin": "*",
